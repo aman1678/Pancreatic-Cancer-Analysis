@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
 from sklearn.metrics import roc_curve, precision_recall_curve, confusion_matrix, classification_report
+from sklearn.inspection import permutation_importance
 
 
 # ROC Curve
@@ -88,6 +89,42 @@ def plot_feature_importance(model, X, model_name, top_n=10):
     df_top[::-1].plot(kind='barh', color='skyblue')  # reverse for top-down
     plt.title(f'Top {top_n} Feature Importances: {model_name}')
     plt.xlabel('Importance')
+    plt.ylabel('Feature')
+    plt.tight_layout()
+    plt.show()
+
+
+# Permutation Feature Importance
+def plot_permutation_importance(model, X, y, model_name, top_n=10, random_state=42):
+    """
+    Plot permutation feature importance for any model.
+    This method works by shuffling each feature and measuring the decrease in model performance.
+    """
+    # Calculate permutation importance
+    perm_importance = permutation_importance(model, X, y, n_repeats=10, random_state=random_state, scoring='roc_auc')
+
+    # Create DataFrame
+    df_perm = pd.DataFrame({
+        'feature': X.columns,
+        'importance': perm_importance.importances_mean,
+        'std': perm_importance.importances_std
+    }).sort_values('importance', ascending=False)
+
+    # Aggregate one-hot encoded features by base name (take max importance)
+    df_perm['base_feature'] = df_perm['feature'].str.split('_').str[0]
+    df_agg = df_perm.groupby('base_feature').agg({
+        'importance': 'max',
+        'std': 'max'
+    }).sort_values('importance', ascending=False)
+
+    # Take top N features
+    df_top = df_agg.head(top_n)
+
+    plt.figure(figsize=(8,6))
+    plt.barh(df_top.index[::-1], df_top['importance'][::-1], 
+             xerr=df_top['std'][::-1], color='lightcoral', capsize=3)
+    plt.title(f'Top {top_n} Permutation Feature Importances: {model_name}')
+    plt.xlabel('Importance (decrease in ROC-AUC)')
     plt.ylabel('Feature')
     plt.tight_layout()
     plt.show()

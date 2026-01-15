@@ -4,7 +4,7 @@ from sklearn.compose import ColumnTransformer
 
 
 # Function to build and encode features
-def build_features(df: pd.DataFrame, target_col: str) -> tuple[pd.DataFrame, pd.Series]:
+def build_features(df: pd.DataFrame, target_col: str = "Survival_Status") -> tuple[pd.DataFrame, pd.Series]:
     X = df.drop(columns=[target_col])
     y = df[target_col]
 

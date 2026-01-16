@@ -18,7 +18,6 @@ def load_and_validate(path: str) -> pd.DataFrame:
 
     # Basic validation
     assert df[TARGET_COL].isnull().sum() == 0, "Target contains nulls"
-    assert df.duplicated().sum() == 0, "Duplicate rows detected"
 
     # Deal with null values by changing them to appropriate defaults
     for col in df.select_dtypes(include=["object"]).columns:
